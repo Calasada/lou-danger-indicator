@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
@@ -330,5 +331,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         */
+    
 
+    public void openLink(View view) {
+        Intent openURL = new Intent(android.content.Intent.ACTION_VIEW);
+        openURL.setData(Uri.parse("https://airnow.gov/index.cfm?action=aqi_brochure.index"));
+        startActivity(openURL);
+    }
 }
