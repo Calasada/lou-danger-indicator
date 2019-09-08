@@ -6,17 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView" />
-
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:text="Start"
         android:translationX="100dp"
         android:translationY="200dp" />
 
@@ -27,4 +21,18 @@
         android:text="Record"
         android:translationX="300dp"
         android:translationY="200dp" />
+
+    <TextView
+        android:id="@+id/startNoti"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:translationX="300dp"
+        android:translationY="250dp" />
+
+    <TextView
+        android:id="@+id/locations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
 </RelativeLayout>

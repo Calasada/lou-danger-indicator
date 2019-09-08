@@ -13,18 +13,18 @@ import android.os.Bundle;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Handler;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    private Button button;
+    private Button start;
     private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
     private Button recorder;
+    private TextView locations;
 
     private double currentLocx;
     private double currentLocy;
@@ -42,15 +42,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = findViewById(R.id.button);
-        textView = findViewById(R.id.textView);
+        start = findViewById(R.id.button);
+        textView = findViewById(R.id.startNoti);
         recorder = findViewById(R.id.recorder);
+        locations = findViewById(R.id.locations);
+
+
 
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                textView.setText("It started!");
                 currentLocx = location.getLatitude();
                 currentLocy = location.getLongitude();
             }
@@ -91,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     }
     int count = 0;
     private void configureButtons() {
-        button.setOnClickListener(new View.OnClickListener() {
+        start.setOnClickListener(new View.OnClickListener() {
 
             @SuppressLint("MissingPermission")
             @Override
@@ -108,18 +112,17 @@ public class MainActivity extends AppCompatActivity {
                 if (count == 1) {
                     loc1x = currentLocx;
                     loc1y = currentLocy;
-                    textView.setText("\n" + loc1x + ", " + loc1y);
+                    locations.setText("\n" + loc1x + ", " + loc1y);
 
                 } else {
                     loc2x = currentLocx;
                     loc2y = currentLocy;
-                    textView.append("\n" + loc2x + ", " + loc2y);
-                    textView.append("\ndifference: " + (loc2x - loc1x) + ", " + (loc2y - loc1y));
+                    locations.append("\n" + loc2x + ", " + loc2y);
+                    locations.append("\ndifference: " + (loc2x - loc1x) + ", " + (loc2y - loc1y));
                 }
             }
         });
 
     }
-
 
 }
