@@ -2,6 +2,9 @@ package com.example.pollutionindicator;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,13 +40,12 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import static android.provider.UserDictionary.Words.APP_ID;
 
 public class MainActivity extends AppCompatActivity {
-    private Button start;
-    private TextView textView;
     private LocationManager locationManager;
     private LocationListener locationListener;
     private Button recorder;
@@ -62,22 +65,66 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        start = findViewById(R.id.button);
-        textView = findViewById(R.id.startNoti);
-        recorder = findViewById(R.id.recorder);
         locations = findViewById(R.id.locations);
-
-
 
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                textView.setText("It started!");
                 currentLocx = location.getLatitude();
                 currentLocy = location.getLongitude();
+
+                String url = "https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude="+currentLocx+"&longitude="+currentLocy+"&distance=25&API_KEY=D37868FB-D5AD-4A2D-B055-490AA645ECA6";
+
+                JsonArrayRequest jsonObjectRequest = new JsonArrayRequest
+                        (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                            @Override
+                            public void onResponse(JSONArray response) {
+                                try {
+                                    double sum = 0;
+                                    for(int i = 0; i < 3; i++) {
+                                        sum += Integer.parseInt(response.getJSONObject(i).get("AQI").toString());
+                                    }
+
+                                    sum /= 3;
+
+                                    locations.setText("Average AQI: " + sum);
+
+                                    View someView = findViewById(R.id.coordinatorLayout);
+                                    if(sum > 0) { //Good
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorGreen));
+                                        System.out.println("oof");
+                                    } if (sum > 50) { //Moderate
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorYellow));
+                                    } if (sum > 100) { //Unhealthy for Sensitive Groups
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorOrange));
+                                    } if (sum > 150) { //Unhealthy
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorRed));
+                                    } if (sum > 200) { //Very Unhealthy
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorPurple));
+                                    } if (sum > 300) { //Hazardous
+                                        someView.setBackgroundColor(getResources().getColor(R.color.colorMaroon));
+                                    }
+
+
+                                } catch(Exception e) {
+
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // TODO: Handle error
+                                System.out.println(error);
+
+                            }
+                        });
+
+                // Access the RequestQueue through your singleton class.
+                MySingleton.getInstance(getBaseContext()).addToRequestQueue(jsonObjectRequest);
             }
 
             @Override
@@ -110,41 +157,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        String url = "https://data.louisvilleky.gov/api/action/datastore/search.json?resource_id=8150a3fd-cd95-4ebc-b59e-4fd5d94e2886&limit=10";
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        //latView.setText("Response: " + response.toString());
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO: Handle error
-
-                    }
-                });
-
-        // Access the RequestQueue through your singleton class.
-        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
+        locationManager.requestLocationUpdates("gps", 60000, 0, locationListener);
 
     }
 
     int count = 0;
 
     private void configureButtons() {
-        start.setOnClickListener(new View.OnClickListener() {
 
-            @SuppressLint("MissingPermission")
-            @Override
-            public void onClick(View view) {
-                locationManager.requestLocationUpdates("gps", 5, 0, locationListener);
-            }
-        });
-
+        /*
         recorder.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -161,6 +182,42 @@ public class MainActivity extends AppCompatActivity {
                     locations.append("\n" + loc2x + ", " + loc2y);
                     locations.append("\ndifference: " + (loc2x - loc1x) + ", " + (loc2y - loc1y));
                 }
+
+                String url = "https://www.airnowapi.org/aq/observation/zipCode/current/?format=application/json&zipCode=40207&distance=25&API_KEY=D37868FB-D5AD-4A2D-B055-490AA645ECA6";
+
+                JsonArrayRequest jsonObjectRequest = new JsonArrayRequest
+                        (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                            @Override
+                            public void onResponse(JSONArray response) {
+                                try {
+                                    double sum = 0;
+                                    for(int i = 0; i < 3; i++) {
+                                        sum += Integer.parseInt(response.getJSONObject(i).get("AQI").toString());
+                                    }
+
+                                    sum /= 3;
+
+                                    locations.setText("Average AQI: " + sum);
+                                } catch(Exception e) {
+
+                                }
+
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // TODO: Handle error
+                                System.out.println(error);
+                            }
+                        });
+
+                // Access the RequestQueue through your singleton class.
+                MySingleton.getInstance(view.getContext()).addToRequestQueue(jsonObjectRequest);
+
             }
         });
-        
+        */
+    }
+}
