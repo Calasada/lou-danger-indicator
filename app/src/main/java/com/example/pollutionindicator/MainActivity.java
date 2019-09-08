@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         */
-    
+
 
     public void openLink(View view) {
         Intent openURL = new Intent(android.content.Intent.ACTION_VIEW);

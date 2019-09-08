@@ -9,9 +9,10 @@
 
     <TextView
         android:id="@+id/locations"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="360dp"
+        android:layout_height="130dp"
         android:text="Loading Position..."
+        android:textSize="30sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
