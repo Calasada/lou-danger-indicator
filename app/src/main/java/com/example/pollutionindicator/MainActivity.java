@@ -9,6 +9,20 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import androidx.annotation.RequiresApi;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +31,14 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONObject;
+
+import static android.provider.UserDictionary.Words.APP_ID;
 
 public class MainActivity extends AppCompatActivity {
     private Button start;
@@ -33,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     private double loc1y;
     private double loc2x;
     private double loc2y;
-
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -66,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProviderEnabled(String s) {
-
             }
 
             @Override
@@ -90,10 +110,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        String url = "https://data.louisvilleky.gov/api/action/datastore/search.json?resource_id=8150a3fd-cd95-4ebc-b59e-4fd5d94e2886&limit=10";
 
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //latView.setText("Response: " + response.toString());
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+
+                    }
+                });
+
+        // Access the RequestQueue through your singleton class.
+        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
 
     }
+
     int count = 0;
+
     private void configureButtons() {
         start.setOnClickListener(new View.OnClickListener() {
 
@@ -122,7 +163,4 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-    }
-
-}
+        
