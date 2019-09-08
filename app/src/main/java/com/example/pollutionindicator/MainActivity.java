@@ -24,6 +24,9 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Handler;
 import android.provider.Settings;
 import android.view.View;
@@ -78,10 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-
             @Override
             public void onProviderEnabled(String s) {
-
             }
 
             @Override
@@ -127,9 +128,12 @@ public class MainActivity extends AppCompatActivity {
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
 
     }
+
     int count = 0;
+
     private void configureButtons() {
         button.setOnClickListener(new View.OnClickListener() {
+
             @SuppressLint("MissingPermission")
             @Override
             public void onClick(View view) {
@@ -155,8 +159,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
-
-
 }
