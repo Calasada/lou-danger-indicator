@@ -43,12 +43,17 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import static android.provider.UserDictionary.Words.APP_ID;
 
 public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
     private LocationListener locationListener;
-    private Button recorder;
+    private Button mode;
     private TextView locations;
 
     private double currentLocx;
@@ -59,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
     private double loc2x;
     private double loc2y;
 
+    int choice = 0;
+
+
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,65 +75,123 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         locations = findViewById(R.id.locations);
+        mode = findViewById(R.id.mode);
 
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                currentLocx = location.getLatitude();
-                currentLocy = location.getLongitude();
 
-                String url = "https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude="+currentLocx+"&longitude="+currentLocy+"&distance=25&API_KEY=D37868FB-D5AD-4A2D-B055-490AA645ECA6";
+                if (choice == 0) {
+                    currentLocx = location.getLatitude();
+                    currentLocy = location.getLongitude();
 
-                JsonArrayRequest jsonObjectRequest = new JsonArrayRequest
-                        (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+                    String url = "https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=" + currentLocx + "&longitude=" + currentLocy + "&distance=25&API_KEY=D37868FB-D5AD-4A2D-B055-490AA645ECA6";
 
-                            @Override
-                            public void onResponse(JSONArray response) {
-                                try {
-                                    double sum = 0;
-                                    for(int i = 0; i < 3; i++) {
-                                        sum += Integer.parseInt(response.getJSONObject(i).get("AQI").toString());
+                    JsonArrayRequest jsonObjectRequest = new JsonArrayRequest
+                            (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+
+                                @Override
+                                public void onResponse(JSONArray response) {
+                                    try {
+                                        double sum = 0;
+                                        for (int i = 0; i < 3; i++) {
+                                            sum += Integer.parseInt(response.getJSONObject(i).get("AQI").toString());
+                                        }
+
+                                        sum /= 3;
+
+                                        locations.setText("Average AQI: " + sum);
+
+                                        View someView = findViewById(R.id.coordinatorLayout);
+                                        if (sum > 0) { //Good
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorGreen));
+                                            System.out.println("oof");
+                                        }
+                                        if (sum > 50) { //Moderate
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorYellow));
+                                        }
+                                        if (sum > 100) { //Unhealthy for Sensitive Groups
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorOrange));
+                                        }
+                                        if (sum > 150) { //Unhealthy
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorRed));
+                                        }
+                                        if (sum > 200) { //Very Unhealthy
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorPurple));
+                                        }
+                                        if (sum > 300) { //Hazardous
+                                            someView.setBackgroundColor(getResources().getColor(R.color.colorMaroon));
+                                        }
+
+
+                                    } catch (Exception e) {
+
                                     }
+                                }
+                            }, new Response.ErrorListener() {
 
-                                    sum /= 3;
-
-                                    locations.setText("Average AQI: " + sum);
-
-                                    View someView = findViewById(R.id.coordinatorLayout);
-                                    if(sum > 0) { //Good
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorGreen));
-                                        System.out.println("oof");
-                                    } if (sum > 50) { //Moderate
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorYellow));
-                                    } if (sum > 100) { //Unhealthy for Sensitive Groups
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorOrange));
-                                    } if (sum > 150) { //Unhealthy
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorRed));
-                                    } if (sum > 200) { //Very Unhealthy
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorPurple));
-                                    } if (sum > 300) { //Hazardous
-                                        someView.setBackgroundColor(getResources().getColor(R.color.colorMaroon));
-                                    }
-
-
-                                } catch(Exception e) {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // TODO: Handle error
+                                    System.out.println(error);
 
                                 }
-                            }
-                        }, new Response.ErrorListener() {
+                            });
 
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                // TODO: Handle error
-                                System.out.println(error);
+                    // Access the RequestQueue through your singleton class.
+                    MySingleton.getInstance(getBaseContext()).addToRequestQueue(jsonObjectRequest);
+                } else if (choice == 1) {
 
-                            }
-                        });
+                    currentLocx = location.getLatitude();
+                    currentLocy = location.getLongitude();
 
-                // Access the RequestQueue through your singleton class.
-                MySingleton.getInstance(getBaseContext()).addToRequestQueue(jsonObjectRequest);
+                    String url = "https://data.louisvilleky.gov/api/action/datastore/search.json?resource_id=41e007f7-d755-4f02-b9fe-4b8454c44624&limit=100&offset=0";
+
+                    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                            (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject response) {
+                                    System.out.println("Ummm");
+                                    try {
+                                        double sum = 0;
+                                        double lat;
+                                        double lon;
+                                        double distAvg = 0;
+                                        for (int i = 0; i < 100; i++) {
+                                            if (i != 74) {
+                                                //System.out.println(i);
+                                                lat = Double.parseDouble(response.getJSONObject("result").getJSONArray("records").getJSONObject(i).getString("lat"));
+                                                lon = Double.parseDouble(response.getJSONObject("result").getJSONArray("records").getJSONObject(i).getString("long_"));
+                                                //System.out.println(lat);
+                                                distAvg += Math.hypot(lat - currentLocx, lon - currentLocy);
+                                            }
+                                        }
+                                        distAvg /= 100;
+                                        System.out.println(response.getJSONObject("result").getJSONArray("records").getJSONObject(74).getString("lat") == null);
+                                        locations.setText("Average distance from 311 call: " + degreesToMiles(distAvg));
+
+
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }, new Response.ErrorListener() {
+
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    // TODO: Handle error
+                                    System.out.println(error);
+
+                                }
+                            });
+                    MySingleton.getInstance(getBaseContext()).addToRequestQueue(jsonObjectRequest);
+
+
+                }
+
             }
 
             @Override
@@ -141,8 +208,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(intent);
             }
-        };
 
+
+
+        };
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{
@@ -156,15 +225,57 @@ public class MainActivity extends AppCompatActivity {
                 configureButtons();
             }
         }
+        locationManager.requestLocationUpdates("gps",7200,0,locationListener);
+    }
 
-        locationManager.requestLocationUpdates("gps", 60000, 0, locationListener);
+    public static double degreesToMiles(double degrees) {
+        return degrees * 69.169444;
+    }
 
+    private String getRequest(String url) throws Exception {
+
+        final URL obj;
+            obj = new URL(url);
+            final HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod("GET");
+
+        if (con.getResponseCode() != 200) {
+            return null;
+
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+
+        return response.toString();
     }
 
     int count = 0;
 
-    private void configureButtons() {
+    public void yo(View view) {
+        if (choice == 0) {
+            choice = 1;
+            View someView = findViewById(R.id.coordinatorLayout);
+            someView.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+            locations.setText("Loading Position...");
+            mode.setText("AQI");
+        } else if (choice == 1) {
+            choice = 0;
+            locations.setText("Loading Position...");
+            mode.setText("311");
+        }
+    }
 
+    public void configureButtons() {
+
+    }
         /*
         recorder.setOnClickListener(new View.OnClickListener() {
 
@@ -219,5 +330,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         */
-    }
+
 }
